@@ -3,7 +3,7 @@
 ```python
 from bookshelf.models import Book
 
-book_class = Book.objects.all()
+book_class = Book.objects.get(ID="1")
 
 for book in book_class:
     print(f"Title: {book.title}\n"
