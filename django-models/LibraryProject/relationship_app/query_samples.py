@@ -4,7 +4,7 @@ from .models import *
 get_author = Author.objects.get(name=author_name)
 print(f"Author: {get_author}")
 
-all_books_by_author = get_author.books.all()
+all_books_by_author = Book.objects.filter(author=author)
 print(all_books_by_author)
 
 # list all books in a library
