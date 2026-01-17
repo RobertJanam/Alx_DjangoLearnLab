@@ -3,13 +3,13 @@ from .models import Library, Book
 from django.views.generic.detail import DetailView
 
 # Create your views here.
-def display_all_books(request):
+def list_books(request):
     all_books = Book.objects.all()
     context = {"all books": all_books}
 
     return render(request, "relationship_app/list_books.html", context)
 
-class Display_all_books_in_aLibrary(DetailView):
+class LibraryDetailView(DetailView):
     model = Library
     template_name = 'relationship_app/library_detail.html'
 
