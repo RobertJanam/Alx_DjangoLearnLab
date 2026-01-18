@@ -3,7 +3,7 @@ from .models import Library, Book, Author, UserProfile
 from django.views.generic.detail import DetailView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
+from django.contrib.auth.decorators import permission_required, login_required, user_passes_test
 from django.contrib import messages
 from django.contrib.auth.models import User
 from .forms import BookForm
