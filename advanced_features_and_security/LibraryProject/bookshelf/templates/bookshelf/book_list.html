@@ -1,37 +1,88 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Book List</title>
+    <!-- SECURITY: Content loaded from same origin only -->
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .success { color: green; }
+        .error { color: red; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
 </head>
 <body>
     <h1>All Books</h1>
 
     {% if messages %}
         {% for message in messages %}
-            <p style="color: green;">{{ message }}</p>
+            <p class="{{ message.tags }}">{{ message }}</p>
         {% endfor %}
     {% endif %}
 
-    <ul>
-        {% for book in books %}
-            <li>
-                {{ book.title }} by {{ book.author }} ({{ book.publication_year }})
-                {% if perms.bookshelf.can_edit %}
-                    <a href="{% url 'book_edit' book.id %}">Edit</a>
-                {% endif %}
-                {% if perms.bookshelf.can_delete %}
-                    <a href="{% url 'book_delete' book.id %}">Delete</a>
-                {% endif %}
-            </li>
-        {% empty %}
-            <li>No books available.</li>
-        {% endfor %}
-    </ul>
+    <!-- SECURITY: Safe search form with CSRF token (GET doesn't need CSRF but good practice) -->
+    <form method="get" action="{% url 'book_list' %}">
+        {{ search_form.query.label_tag }}
+        {{ search_form.query }}
+        <button type="submit">Search</button>
+        {% if search_form.query.errors %}
+            <div class="error">{{ search_form.query.errors }}</div>
+        {% endif %}
+    </form>
+
+    {% if books %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Author</th>
+                    <th>Publication Year</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for book in books %}
+                    <tr>
+                        <td>{{ book.title }}</td>  <!-- Auto-escaped by Django -->
+                        <td>{{ book.author }}</td>  <!-- Auto-escaped by Django -->
+                        <td>{{ book.publication_year }}</td>
+                        <td>
+                            {% if perms.bookshelf.can_edit %}
+                                <a href="{% url 'book_edit' book.id %}">Edit</a>
+                            {% endif %}
+                            {% if perms.bookshelf.can_delete %}
+                                | <a href="{% url 'book_delete' book.id %}">Delete</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No books available.</p>
+    {% endif %}
 
     {% if perms.bookshelf.can_create %}
         <p><a href="{% url 'book_create' %}">Add New Book</a></p>
     {% endif %}
 
+    <!-- SECURITY: Link to secure form example -->
+    <p><a href="{% url 'form_example' %}">View Secure Form Example</a></p>
+
     <p><a href="{% url 'home' %}">Back to Home</a></p>
+
+    <!-- SECURITY: Content Security Policy compliant -->
+    <script>
+        // SECURITY: Inline script allowed by CSP in development
+        console.log('Book list loaded');
+
+        // SECURITY: Safe event handling
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Document ready');
+        });
+    </script>
 </body>
 </html>

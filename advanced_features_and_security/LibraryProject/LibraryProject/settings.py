@@ -29,7 +29,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 
-DEBUG = True
+# SECURITY: Debug should be False in production
+DEBUG = True  # Set to False in production
 
 ALLOWED_HOSTS = []
 
@@ -43,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'csp',  # Add django-csp for Content Security Policy
     'bookshelf',
     'relationship_app',
 ]
@@ -55,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',  # Add CSP middleware
 ]
 
 ROOT_URLCONF = 'LibraryProject.urls'
@@ -90,8 +93,8 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT'),
         'OPTIONS': {
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        }
     }
-}
 }
 
 
@@ -137,3 +140,74 @@ AUTH_USER_MODEL = 'bookshelf.CustomUser'
 LOGIN_URL = 'relationship_app:login'
 LOGIN_REDIRECT_URL = 'relationship_app:list_books'
 LOGOUT_REDIRECT_URL = 'relationship_app:logout'
+
+
+# SECURITY: Set to True for production (requires HTTPS)
+CSRF_COOKIE_SECURE = False  # Set to True in production with HTTPS
+SESSION_COOKIE_SECURE = False  # Set to True in production with HTTPS
+
+# SECURITY: Browser security headers
+SECURE_BROWSER_XSS_FILTER = True  # Enable browser XSS filter
+X_FRAME_OPTIONS = 'DENY'  # Prevent clickjacking
+SECURE_CONTENT_TYPE_NOSNIFF = True  # Prevent MIME type sniffing
+
+# SECURITY: HSTS settings (requires HTTPS)
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# SECURITY: SSL Redirect (requires HTTPS)
+SECURE_SSL_REDIRECT = False  # Set to True in production with HTTPS
+
+# SECURITY: Referrer Policy
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# SECURITY: Content Security Policy (CSP) settings
+# These settings help prevent XSS attacks by controlling resource loading
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'",)  # 'unsafe-inline' for development only
+CSP_SCRIPT_SRC = ("'self'",)
+CSP_IMG_SRC = ("'self'", "data:",)
+CSP_FONT_SRC = ("'self'",)
+CSP_CONNECT_SRC = ("'self'",)
+
+# SECURITY: Additional headers (set via middleware)
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # For proxy setups
+
+# SECURITY: Cookie settings
+CSRF_COOKIE_HTTPONLY = True  # Prevents JavaScript from accessing CSRF cookie
+SESSION_COOKIE_HTTPONLY = True  # Prevents JavaScript from accessing session cookie
+CSRF_COOKIE_SAMESITE = 'Lax'  # CSRF cookie SameSite attribute
+SESSION_COOKIE_SAMESITE = 'Lax'  # Session cookie SameSite attribute
+
+# SECURITY: Password validation
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'OPTIONS': {
+            'user_attributes': ('email', 'first_name', 'last_name'),
+            'max_similarity': 0.7,
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8,
+        }
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    },
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    },
+]
+
+# SECURITY: Session settings
+SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Session expires when browser closes
+SESSION_SAVE_EVERY_REQUEST = True  # Save session on every request
+
+# SECURITY: File upload settings
+FILE_UPLOAD_MAX_MEMORY_SIZE = 2621440  # 2.5 MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # 5 MB

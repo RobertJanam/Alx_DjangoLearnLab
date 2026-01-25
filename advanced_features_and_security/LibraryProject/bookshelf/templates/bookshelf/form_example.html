@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Form Example</title>
+    <!-- SECURITY: Content loaded from same origin only -->
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .error { color: red; }
+        .success { color: green; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input, textarea { width: 100%; max-width: 500px; padding: 8px; }
+        .help-text { font-size: 0.9em; color: #666; }
+    </style>
+</head>
+<body>
+    <h1>Secure Form Example</h1>
+    <p>This form demonstrates security best practices:</p>
+    <ul>
+        <li>CSRF protection with {% csrf_token %}</li>
+        <li>Input validation and sanitization</li>
+        <li>XSS prevention through HTML escaping</li>
+        <li>Proper error handling</li>
+    </ul>
+
+    {% if messages %}
+        {% for message in messages %}
+            <p class="{% if message.tags %}{{ message.tags }}{% endif %}">
+                {{ message }}
+            </p>
+        {% endfor %}
+    {% endif %}
+
+    <!-- SECURITY: CSRF token included for POST requests -->
+    <form method="post">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="error">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <div class="form-group">
+            <label for="id_name">Name:</label>
+            {{ form.name }}
+            {% if form.name.errors %}
+                <div class="error">{{ form.name.errors }}</div>
+            {% endif %}
+            <div class="help-text">{{ form.name.help_text }}</div>
+        </div>
+
+        <div class="form-group">
+            <label for="id_email">Email:</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+                <div class="error">{{ form.email.errors }}</div>
+            {% endif %}
+            <div class="help-text">{{ form.email.help_text }}</div>
+        </div>
+
+        <div class="form-group">
+            <label for="id_message">Message:</label>
+            {{ form.message }}
+            {% if form.message.errors %}
+                <div class="error">{{ form.message.errors }}</div>
+            {% endif %}
+            <div class="help-text">{{ form.message.help_text }}</div>
+        </div>
+
+        <button type="submit">Submit</button>
+    </form>
+
+    <!-- SECURITY: External links use rel="noopener noreferrer" -->
+    <p><a href="{% url 'home' %}" rel="noopener noreferrer">Back to Home</a></p>
+
+    <!-- SECURITY: JavaScript loaded from same origin -->
+    <script>
+        // SECURITY: Content loaded from same origin
+        console.log('Secure form example loaded');
+
+        // SECURITY: Event listeners for additional validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            // Client-side validation (complementary to server-side)
+            const name = document.getElementById('id_name').value;
+            if (name.length < 2) {
+                alert('Name must be at least 2 characters long.');
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>
