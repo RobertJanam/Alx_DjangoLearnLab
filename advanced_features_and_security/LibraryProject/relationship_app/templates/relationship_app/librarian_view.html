@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Librarian Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background-color: #28a745;
+            color: white;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .nav {
+            margin-bottom: 20px;
+        }
+        .nav a {
+            margin-right: 15px;
+            text-decoration: none;
+            color: #007bff;
+        }
+        .libraries-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .library-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Librarian Dashboard</h1>
+            <p>Welcome, {{ user.username }} ({{ role }})</p>
+        </div>
+
+        <div class="nav">
+            <a href="{% url 'relationship_app:list_books' %}">Home</a>
+            <a href="{% url 'relationship_app:logout' %}">Logout</a>
+        </div>
+
+        <h2>Libraries Under Management:</h2>
+        <div class="libraries-grid">
+            {% for library in libraries %}
+            <div class="library-card">
+                <h3>{{ library.name }}</h3>
+                <p>Total Books: {{ library.books.count }}</p>
+                <a href="{% url 'relationship_app:library_detail' library.pk %}">View Details</a>
+            </div>
+            {% empty %}
+            <p>No libraries found.</p>
+            {% endfor %}
+        </div>
+
+        <div class="librarian-features">
+            <h2>Librarian Responsibilities:</h2>
+            <ul>
+                <li>Manage book inventory</li>
+                <li>Process book loans and returns</li>
+                <li>Assist library members</li>
+                <li>Maintain library organization</li>
+                <li>Generate library reports</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,21 @@
+from .models import *
+
+# query all books by a specific author
+get_author = Author.objects.get(name=author_name)
+print(f"Author: {get_author}")
+
+all_books_by_author = Book.objects.filter(author=author)
+print(all_books_by_author)
+
+# list all books in a library
+library = Library.objects.get(name=library_name)
+
+get_all_books = library.books.all()
+
+print(f"\nBooks in {library}\n")
+print(get_all_books)
+
+# retrieve the librarian for a library
+get_librarian = Librarian.objects.get(library=library_name)
+
+print(f"{get_librarian} is the librarian")
