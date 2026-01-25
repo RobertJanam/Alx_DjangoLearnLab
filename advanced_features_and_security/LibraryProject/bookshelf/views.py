@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponseForbidden
 from .models import Book
-from .forms import BookForm, SearchForm, ExampleForm  # Import the forms
+from .forms import ExampleForm, BookForm, SearchForm
 
 # TASK 3: Enforce permissions in views using decorators
 # These views demonstrate how to use permission_required decorator

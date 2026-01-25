@@ -1,7 +1,7 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from .models import Book
-import bleach  # For HTML sanitization
+import bleach
 
 
 class BookForm(forms.ModelForm):
