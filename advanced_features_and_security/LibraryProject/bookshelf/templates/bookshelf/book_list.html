@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Book List</title>
+</head>
+<body>
+    <h1>All Books</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <p style="color: green;">{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+
+    <ul>
+        {% for book in books %}
+            <li>
+                {{ book.title }} by {{ book.author }} ({{ book.publication_year }})
+                {% if perms.bookshelf.can_edit %}
+                    <a href="{% url 'book_edit' book.id %}">Edit</a>
+                {% endif %}
+                {% if perms.bookshelf.can_delete %}
+                    <a href="{% url 'book_delete' book.id %}">Delete</a>
+                {% endif %}
+            </li>
+        {% empty %}
+            <li>No books available.</li>
+        {% endfor %}
+    </ul>
+
+    {% if perms.bookshelf.can_create %}
+        <p><a href="{% url 'book_create' %}">Add New Book</a></p>
+    {% endif %}
+
+    <p><a href="{% url 'home' %}">Back to Home</a></p>
+</body>
+</html>

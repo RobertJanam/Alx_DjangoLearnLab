@@ -3,7 +3,6 @@ from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.utils.translation import gettext_lazy as _
 
 class CustomUserManager(BaseUserManager):
-
     use_in_migrations = True
 
     def _create_user(self, email, password, **extra_fields):
@@ -32,7 +31,6 @@ class CustomUserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 class CustomUser(AbstractUser):
-
     username = None
     email = models.EmailField(_('email address'), unique=True)
 
@@ -59,3 +57,13 @@ class Book(models.Model):
 
     def __str__(self):
         return self.title
+
+    # TASK 1: Define custom permissions for the Book model
+    # These permissions will be used to control access to book-related operations
+    class Meta:
+        permissions = [
+            ("can_view", "Can view books"),        # Permission to view books
+            ("can_create", "Can create books"),    # Permission to create new books
+            ("can_edit", "Can edit books"),        # Permission to edit existing books
+            ("can_delete", "Can delete books"),    # Permission to delete books
+        ]
