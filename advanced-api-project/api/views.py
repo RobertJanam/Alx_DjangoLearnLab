@@ -1,13 +1,7 @@
-"""
-Views for the API application using Django REST Framework's generic views.
-
-This module implements custom views and generic views for handling CRUD operations
-on Book and Author models with proper permissions and custom behavior.
-"""
-
 from rest_framework import generics, permissions, status, filters
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
+from django_filters import rest_framework
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
 from django.http import Http404
