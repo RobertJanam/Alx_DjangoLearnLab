@@ -5,12 +5,12 @@ from rest_framework.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer, BookCreateSerializer
-from .permissions import IsAdminOrReadOnly, CanCreateBookPermission
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated
 # Create your views here.
 
 class BookListView(generics.ListCreateAPIView):
     queryset = Book.objects.all()
-    permission_classes = [permissions.IsAuthenticatedOrReadOnly | CanCreateBookPermission]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly | IsAuthenticated]
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -52,7 +52,7 @@ class AuthorListView(generics.ListCreateAPIView):
 class AuthorDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def perform_create(self, serializer):
         serializer.save()
