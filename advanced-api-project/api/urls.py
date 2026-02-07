@@ -1,10 +1,3 @@
-"""
-URL configuration for the API application.
-
-This module defines URL patterns for accessing Book and Author views.
-Each view is mapped to a specific endpoint for CRUD operations.
-"""
-
 from django.urls import path
 from . import views
 
