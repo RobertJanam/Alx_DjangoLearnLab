@@ -167,3 +167,97 @@ class CustomBookUpdateView(generics.UpdateAPIView):
 
     def perform_update(self, serializer):
         serializer.save()
+
+class BookDeleteView(generics.DestroyAPIView):
+    """
+    Custom DeleteView for Book model with additional functionality.
+
+    This view demonstrates a standalone DeleteView with:
+        - Custom delete logic
+        - Pre-deletion checks
+        - Custom response format
+        - Additional security measures
+
+    While BookDetailView already includes delete functionality,
+    this separate view shows how to create a dedicated delete endpoint
+    with custom behavior.
+    """
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Store book info for response before deletion
+        book_info = {
+            'id': instance.id,
+            'title': instance.title,
+            'author': instance.author.name
+        }
+
+        self.perform_destroy(instance)
+
+        return Response({
+            'status': 'success',
+            'message': 'Book deleted successfully',
+            'deleted_book': book_info,
+            'timestamp': instance.updated_at
+        }, status=status.HTTP_200_OK)
+
+    def perform_destroy(self, instance):
+        print(f"Deleting book: {instance.title} (ID: {instance.id})")
+        instance.delete()
+
+
+class AuthorDeleteView(generics.DestroyAPIView):
+    queryset = Author.objects.all()
+    serializer_class = AuthorSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Check if author has books
+        book_count = instance.books.count()
+
+        # Perform pre-deletion checks
+        self.perform_pre_delete_checks(instance, book_count)
+
+        # Store author info for response
+        author_info = {
+            'id': instance.id,
+            'name': instance.name,
+            'book_count': book_count
+        }
+
+        # If author has books, store book info
+        books_info = []
+        if book_count > 0:
+            books_info = [
+                {'id': book.id, 'title': book.title}
+                for book in instance.books.all()
+            ]
+
+        # Perform the deletion (this will cascade delete books)
+        self.perform_destroy(instance)
+
+        # Custom success response
+        response_data = {
+            'status': 'success',
+            'message': 'Author deleted successfully',
+            'deleted_author': author_info,
+        }
+
+        if books_info:
+            response_data['cascade_deleted_books'] = books_info
+            response_data['message'] += f' along with {book_count} related book(s)'
+
+        return Response(response_data, status=status.HTTP_200_OK)
+
+    def perform_destroy(self, instance):
+        # Log the deletion
+        print(f"Deleting author: {instance.name} (ID: {instance.id})")
+
+        # Delete the author (books will be cascade deleted)
+        instance.delete()
