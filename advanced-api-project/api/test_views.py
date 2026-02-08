@@ -360,6 +360,28 @@ class AuthenticationPermissionTests(BaseAPITestCase):
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
+    def test_session_authentication(self):
+        url = reverse('book-create')
+        data = {
+            'title': 'Session Auth Book',
+            'publication_year': 2023,
+            'author': self.author1.id
+        }
+
+        # Test without login - should fail
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+        # Test with login - should succeed
+        login_success = self.client.login(username='regular_user', password='testpass123')
+        self.assertTrue(login_success)
+
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # Logout
+        self.client.logout()
+
     def test_different_user_permissions(self):
         self.authenticate_user(self.regular_user)
         url = reverse('book-create')
