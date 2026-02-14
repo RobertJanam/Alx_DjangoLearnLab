@@ -31,6 +31,19 @@
         {{ post.content|linebreaks }}
     </div>
 
+    <!-- Tags Section -->
+{% if post.tags.all %}
+    <div class="post-tags">
+        <i class="fas fa-tags"></i>
+        <strong>Tags:</strong>
+        {% for tag in post.tags.all %}
+            <a href="{% url 'tag-detail' tag.slug %}" class="tag-link">
+                <span class="tag">{{ tag.name }}</span>
+            </a>
+        {% endfor %}
+    </div>
+{% endif %}
+
     <!-- Comments Section -->
     <div class="comments-section">
         <h2 class="comments-title">

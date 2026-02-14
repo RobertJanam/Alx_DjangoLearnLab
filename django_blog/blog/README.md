@@ -172,4 +172,130 @@ The comment system allows users to engage with blog posts by leaving, editing, a
 
 ### Test Editing a Comment
 1. Navigate to your comment
-2. Click the edit (pencil
+2. Click the edit (pencil)
+
+# Tagging and Search Functionality Documentation
+
+## Overview
+The tagging and search system enhances content discovery by allowing posts to be categorized with tags and enabling users to search for posts based on various criteria.
+
+## Tagging System
+
+### Adding Tags to Posts
+1. When creating or editing a post, enter tags in the "Tags" field
+2. Separate multiple tags with commas (e.g., `python, django, web development`)
+3. Tags are automatically created if they don't exist
+4. Tags are case-insensitive and stored in lowercase
+
+### Tag Features
+- **Tag Display**: Tags appear on post list and detail pages
+- **Tag Links**: Click any tag to see all posts with that tag
+- **Tag URL**: `/tag/<tag_name>/` shows all posts with that tag
+- **Tag Cloud**: Tags are displayed as styled badges
+
+### Tag Validation Rules
+- Maximum tag length: 50 characters
+- Allowed characters: letters, numbers, spaces, hyphens, underscores
+- Tags are automatically trimmed of whitespace
+- Duplicate tags are automatically handled
+
+## Search Functionality
+
+### Search Features
+- **Global Search Bar**: Available in the navigation bar on all pages
+- **Advanced Search**: Searches through post titles, content, and tags
+- **Real-time Results**: Results page shows matching posts with context
+- **Pagination**: Search results are paginated (10 posts per page)
+- **Result Count**: Shows number of matching posts found
+
+### Search Implementation
+- **Search URL**: `/search/?q=your+query`
+- **Search Fields**:
+  - Post titles (case-insensitive partial match)
+  - Post content (case-insensitive partial match)
+  - Tag names (case-insensitive partial match)
+- **Query Requirements**: Minimum 2 characters
+
+### Search Results Page Features
+- Shows search query and result count
+- Displays matching posts in a grid layout
+- Preserves pagination with search query
+- Empty state with helpful message when no results found
+- Link to browse all posts
+
+## URL Patterns
+
+| URL | View Name | Description |
+|-----|-----------|-------------|
+| `/search/` | `search` | Search results page |
+| `/tag/<slug:tag_slug>/` | `tag-detail` | Posts filtered by tag |
+
+## Usage Examples
+
+### Searching for Posts
+1. Type keywords in the search bar at the top of any page
+2. Press Enter or click the search icon
+3. View results on the search results page
+4. Click any post to read full content
+
+### Browsing by Tag
+1. Click on any tag badge on a post
+2. View all posts with that tag
+3. See the tag name in the page header
+4. Click other tags to filter further
+
+### Creating Tagged Posts
+1. Create or edit a post
+2. In the Tags field, enter relevant tags
+3. Example: `python, tutorial, beginners`
+4. Tags will appear on the post automatically
+
+## Testing Instructions
+
+### Test Tag Creation
+1. Create a new post with tags: `test, demo, sample`
+2. Verify tags appear on the post detail page
+3. Click each tag to see filtered results
+4. Verify all posts with that tag are displayed
+
+### Test Tag Editing
+1. Edit an existing post and modify tags
+2. Add new tags: `updated, new`
+3. Remove existing tags
+4. Verify changes are reflected on the post
+
+### Test Search Functionality
+1. Enter a search term that exists in post titles
+2. Enter a search term that exists in post content
+3. Enter a search term that matches a tag name
+4. Verify all relevant posts are displayed
+5. Test with empty query (should show no results)
+6. Test with single character (should show no results)
+
+### Test Combined Features
+1. Search for a tag name
+2. Click on a tag from search results
+3. Verify tag filter page loads correctly
+4. Navigate back and forth between searches and tags
+
+## Implementation Details
+
+### Models
+- `Post.tags`: TaggableManager from django-taggit
+- Many-to-many relationship between posts and tags
+- Tags are stored in a separate table with slug fields
+
+### Views
+- `search_view`: Handles search queries
+- `tag_detail_view`: Shows posts by tag
+- Form validation for search queries
+
+### Templates
+- `search_results.html`: Displays search results
+- `tag_detail.html`: Shows posts filtered by tag
+- Updated post templates to show tags
+
+### Forms
+- `PostForm`: Updated with tags field
+- `SearchForm`: Handles search query validation
+- TagWidget for tag input styling

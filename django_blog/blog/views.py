@@ -4,26 +4,24 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.contrib.auth.models import User
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
 from django.urls import reverse_lazy, reverse
 from django.db import transaction
+from django.db.models import Q
 from .models import Post, Profile, Comment
-from .forms import UserRegisterForm, UserUpdateForm, UserProfileForm, PostForm, CommentForm
-
-# Create your views here.
+from .forms import UserRegisterForm, UserUpdateForm, UserProfileForm, PostForm, CommentForm, SearchForm
 
 # Authentication Views
 def home(request):
-    """Home page view displaying all blog posts."""
     posts = Post.objects.all()
     context = {
         'posts': posts,
-        'title': 'Home'
+        'title': 'Home',
+        'search_form': SearchForm()
     }
     return render(request, 'blog/home.html', context)
 
 def register(request):
-    """User registration view."""
     if request.user.is_authenticated:
         return redirect('home')
 
@@ -40,7 +38,6 @@ def register(request):
     return render(request, 'registration/register.html', {'form': form, 'title': 'Register'})
 
 def login_view(request):
-    """User login view."""
     if request.user.is_authenticated:
         return redirect('home')
 
@@ -60,14 +57,12 @@ def login_view(request):
     return render(request, 'registration/login.html', {'title': 'Login'})
 
 def logout_view(request):
-    """User logout view."""
     logout(request)
     messages.success(request, 'You have been successfully logged out.')
     return redirect('home')
 
 @login_required
 def profile(request):
-    """User profile view and edit."""
     if request.method == 'POST':
         user_form = UserUpdateForm(request.POST, instance=request.user)
         profile_form = UserProfileForm(request.POST, request.FILES, instance=request.user.profile)
@@ -90,7 +85,6 @@ def profile(request):
 
 @login_required
 def profile_detail(request, username):
-    """View another user's profile."""
     user = get_object_or_404(User, username=username)
     posts = Post.objects.filter(author=user)
 
@@ -104,7 +98,6 @@ def profile_detail(request, username):
 @login_required
 @transaction.atomic
 def update_profile(request):
-    """Update user profile."""
     if request.method == 'POST':
         user_form = UserUpdateForm(request.POST, instance=request.user)
         profile_form = UserProfileForm(request.POST, request.FILES, instance=request.user.profile)
@@ -127,10 +120,8 @@ def update_profile(request):
     }
     return render(request, 'registration/edit_profile.html', context)
 
-
 # Blog Post CRUD Views
 class PostListView(ListView):
-    """View to list all blog posts."""
     model = Post
     template_name = 'blog/post_list.html'
     context_object_name = 'posts'
@@ -140,11 +131,10 @@ class PostListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'All Posts'
+        context['search_form'] = SearchForm()
         return context
 
-
 class PostDetailView(DetailView):
-    """View to display a single blog post."""
     model = Post
     template_name = 'blog/post_detail.html'
     context_object_name = 'post'
@@ -154,11 +144,10 @@ class PostDetailView(DetailView):
         context['title'] = self.object.title
         context['comment_form'] = CommentForm()
         context['comments'] = self.object.comments.all()
+        context['search_form'] = SearchForm()
         return context
 
-
 class PostCreateView(LoginRequiredMixin, CreateView):
-    """View to create a new blog post."""
     model = Post
     form_class = PostForm
     template_name = 'blog/post_form.html'
@@ -168,16 +157,23 @@ class PostCreateView(LoginRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Create New Post'
         context['button_text'] = 'Create Post'
+        context['search_form'] = SearchForm()
         return context
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        messages.success(self.request, 'Your post has been created successfully!')
-        return super().form_valid(form)
+        response = super().form_valid(form)
 
+        # Handle tags
+        tags = form.cleaned_data.get('tags', '')
+        if tags:
+            tag_list = [tag.strip() for tag in tags.split(',') if tag.strip()]
+            self.object.tags.add(*tag_list)
+
+        messages.success(self.request, 'Your post has been created successfully!')
+        return response
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    """View to update an existing blog post."""
     model = Post
     form_class = PostForm
     template_name = 'blog/post_form.html'
@@ -187,19 +183,32 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Edit Post'
         context['button_text'] = 'Update Post'
+        context['search_form'] = SearchForm()
+
+        # Pre-populate tags field
+        if self.object.tags.exists():
+            context['form'].fields['tags'].initial = ', '.join([tag.name for tag in self.object.tags.all()])
+
         return context
 
     def form_valid(self, form):
+        response = super().form_valid(form)
+
+        # Handle tags
+        tags = form.cleaned_data.get('tags', '')
+        self.object.tags.clear()
+        if tags:
+            tag_list = [tag.strip() for tag in tags.split(',') if tag.strip()]
+            self.object.tags.add(*tag_list)
+
         messages.success(self.request, 'Your post has been updated successfully!')
-        return super().form_valid(form)
+        return response
 
     def test_func(self):
         post = self.get_object()
         return self.request.user == post.author
 
-
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    """View to delete a blog post."""
     model = Post
     template_name = 'blog/post_confirm_delete.html'
     success_url = reverse_lazy('post-list')
@@ -208,6 +217,7 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Delete Post'
+        context['search_form'] = SearchForm()
         return context
 
     def delete(self, request, *args, **kwargs):
@@ -218,10 +228,8 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         post = self.get_object()
         return self.request.user == post.author
 
-
 # Comment Views
 class CommentCreateView(LoginRequiredMixin, CreateView):
-    """View to create a new comment."""
     model = Comment
     form_class = CommentForm
     template_name = 'blog/comment_form.html'
@@ -229,11 +237,12 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Add Comment'
+        context['search_form'] = SearchForm()
         return context
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        form.instance.post_id = self.kwargs['pk']  # Changed from 'post_id' to 'pk'
+        form.instance.post_id = self.kwargs['pk']
         messages.success(self.request, 'Your comment has been added!')
         return super().form_valid(form)
 
@@ -241,7 +250,6 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
         return reverse('post-detail', kwargs={'pk': self.kwargs['pk']})
 
 class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    """View to update an existing comment."""
     model = Comment
     form_class = CommentForm
     template_name = 'blog/comment_form.html'
@@ -249,6 +257,7 @@ class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Edit Comment'
+        context['search_form'] = SearchForm()
         return context
 
     def form_valid(self, form):
@@ -262,15 +271,14 @@ class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         comment = self.get_object()
         return self.request.user == comment.author
 
-
 class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    """View to delete a comment."""
     model = Comment
     template_name = 'blog/comment_confirm_delete.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = 'Delete Comment'
+        context['search_form'] = SearchForm()
         return context
 
     def get_success_url(self):
@@ -283,3 +291,84 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         comment = self.get_object()
         return self.request.user == comment.author
+
+# Tag and Search Views
+class TagPostListView(ListView):
+    """View to display posts filtered by tag."""
+    model = Post
+    template_name = 'blog/post_list.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+
+    def get_queryset(self):
+        tag_slug = self.kwargs.get('tag_slug')
+        return Post.objects.filter(tags__name__in=[tag_slug]).distinct().order_by('-published_date')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Posts tagged with '{self.kwargs.get('tag_slug')}'"
+        context['search_form'] = SearchForm()
+        context['current_tag'] = self.kwargs.get('tag_slug')
+        return context
+
+class SearchResultsView(ListView):
+    """View to display search results."""
+    model = Post
+    template_name = 'blog/search_results.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+
+    def get_queryset(self):
+        query = self.request.GET.get('q', '')
+        if query:
+            return Post.objects.filter(
+                Q(title__icontains=query) |
+                Q(content__icontains=query) |
+                Q(tags__name__icontains=query)
+            ).distinct().order_by('-published_date')
+        return Post.objects.none()
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Search Results'
+        context['search_form'] = SearchForm(self.request.GET)
+        context['query'] = self.request.GET.get('q', '')
+        context['result_count'] = self.get_queryset().count()
+        return context
+
+def search_view(request):
+    """View to handle search functionality."""
+    form = SearchForm(request.GET or None)
+    posts = []
+    query = ''
+
+    if form.is_valid():
+        query = form.cleaned_data.get('query', '')
+        if query:
+            posts = Post.objects.filter(
+                Q(title__icontains=query) |
+                Q(content__icontains=query) |
+                Q(tags__name__icontains=query)
+            ).distinct().order_by('-published_date')
+
+    context = {
+        'form': form,
+        'posts': posts,
+        'query': query,
+        'title': 'Search Results',
+        'result_count': len(posts)
+    }
+    return render(request, 'blog/search_results.html', context)
+
+def tag_detail_view(request, tag_slug):
+    """View to display all posts with a specific tag."""
+    posts = Post.objects.filter(tags__name__in=[tag_slug]).distinct().order_by('-published_date')
+
+    context = {
+        'posts': posts,
+        'tag': tag_slug,
+        'title': f'Posts tagged with "{tag_slug}"',
+        'search_form': SearchForm(),
+        'result_count': posts.count()
+    }
+    return render(request, 'blog/tag_detail.html', context)

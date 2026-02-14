@@ -968,3 +968,126 @@ body {
         justify-content: flex-end;
     }
 }
+
+/* Search Form Styles */
+.search-form {
+    flex: 1;
+    max-width: 400px;
+    margin: 0 20px;
+}
+
+.search-wrapper {
+    display: flex;
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 15px;
+    padding-right: 40px;
+    border: 2px solid #e0e0e0;
+    border-radius: 25px;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.search-btn {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #667eea;
+    cursor: pointer;
+    padding: 8px 12px;
+    font-size: 1rem;
+    transition: color 0.3s;
+}
+
+.search-btn:hover {
+    color: #764ba2;
+}
+
+/* Tag Styles */
+.post-tags {
+    margin: 15px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+
+.post-tags i {
+    color: #667eea;
+    margin-right: 5px;
+}
+
+.tag-link {
+    text-decoration: none;
+}
+
+.tag {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #f0f0f0;
+    color: #667eea;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s;
+    border: 2px solid transparent;
+}
+
+.tag:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.tag-link.active .tag {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+/* Post Detail Tags */
+.post-detail .post-tags {
+    margin: 20px 0 30px;
+    padding: 15px 0;
+    border-top: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.post-detail .post-tags i {
+    font-size: 1.1rem;
+}
+
+.post-detail .post-tags strong {
+    margin-right: 10px;
+    color: #333;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .search-form {
+        max-width: 100%;
+        margin: 10px 0;
+    }
+
+    .nav-container {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .nav-menu {
+        width: 100%;
+        justify-content: center;
+    }
+}
