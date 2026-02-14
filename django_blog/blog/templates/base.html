@@ -6,25 +6,31 @@
     <title>{% block title %}Django Blog{% endblock %}</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <a href="/" class="nav-logo">Django Blog</a>
+            <a href="{% url 'home' %}" class="nav-logo">
+                <i class="fas fa-blog"></i> Django Blog
+            </a>
             <ul class="nav-menu">
-                <li><a href="/">Home</a></li>
+                <li><a href="{% url 'home' %}"><i class="fas fa-home"></i> Home</a></li>
                 {% if user.is_authenticated %}
-                    <li><a href="{% url 'post-create' %}">New Post</a></li>
-                    <li><a href="{% url 'profile' %}">Profile</a></li>
+                    <li><a href="{% url 'post-create' %}"><i class="fas fa-plus-circle"></i> New Post</a></li>
+                    <li><a href="{% url 'profile' %}"><i class="fas fa-user"></i> Profile</a></li>
                     <li>
                         <form method="post" action="{% url 'logout' %}" style="display: inline;">
                             {% csrf_token %}
-                            <button type="submit" class="logout-btn">Logout</button>
+                            <button type="submit" class="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
                         </form>
                     </li>
                 {% else %}
-                    <li><a href="{% url 'login' %}">Login</a></li>
-                    <li><a href="{% url 'register' %}">Register</a></li>
+                    <li><a href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                    <li><a href="{% url 'register' %}"><i class="fas fa-user-plus"></i> Register</a></li>
                 {% endif %}
             </ul>
         </div>
@@ -35,6 +41,7 @@
             <div class="messages">
                 {% for message in messages %}
                     <div class="alert alert-{{ message.tags }}">
+                        <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
                         {{ message }}
                     </div>
                 {% endfor %}
@@ -47,10 +54,11 @@
 
     <footer class="footer">
         <div class="container">
-            <p>&copy; 2026 Django Blog. All rights reserved.</p>
+            <p>&copy; 2026 Django Blog. Built with <i class="fas fa-heart" style="color: #ff6b6b;"></i> and Django</p>
         </div>
     </footer>
 
     <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

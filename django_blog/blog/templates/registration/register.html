@@ -1,61 +1,72 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Register - Django Blog{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/auth.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="auth-container">
-    <div class="auth-card">
-        <h2>Create an Account</h2>
-        <p class="auth-subtitle">Join our community of bloggers</p>
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-card">
+            <h2>Create an Account</h2>
+            <p class="auth-subtitle">Join our community of bloggers</p>
 
-        <form method="POST" class="auth-form">
-            {% csrf_token %}
+            <form method="POST" class="auth-form register-form">
+                {% csrf_token %}
 
-            {% if form.errors %}
-                <div class="alert alert-error">
-                    <strong>Please correct the following errors:</strong>
-                    <ul>
-                        {% for field, errors in form.errors.items %}
-                            {% for error in errors %}
-                                <li>{{ error }}</li>
+                {% if form.errors %}
+                    <div class="auth-alert auth-alert-error">
+                        <strong>Please correct the following errors:</strong>
+                        <ul class="auth-errorlist">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
                             {% endfor %}
-                        {% endfor %}
-                    </ul>
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}">Username</label>
+                    {{ form.username }}
+                    {% if form.username.help_text %}
+                        <small class="help-text">{{ form.username.help_text }}</small>
+                    {% endif %}
                 </div>
-            {% endif %}
 
-            <div class="form-group">
-                <label for="{{ form.username.id_for_label }}">Username</label>
-                {{ form.username }}
-                {% if form.username.help_text %}
-                    <small class="help-text">{{ form.username.help_text }}</small>
-                {% endif %}
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}">Email</label>
+                    {{ form.email }}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.password1.id_for_label }}">Password</label>
+                    {{ form.password1 }}
+                    {% if form.password1.help_text %}
+                        <small class="help-text">{{ form.password1.help_text }}</small>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
+                    {{ form.password2 }}
+                </div>
+
+                <button type="submit" class="auth-btn">Register</button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
             </div>
-
-            <div class="form-group">
-                <label for="{{ form.email.id_for_label }}">Email</label>
-                {{ form.email }}
-            </div>
-
-            <div class="form-group">
-                <label for="{{ form.password1.id_for_label }}">Password</label>
-                {{ form.password1 }}
-                {% if form.password1.help_text %}
-                    <small class="help-text">{{ form.password1.help_text }}</small>
-                {% endif %}
-            </div>
-
-            <div class="form-group">
-                <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
-                {{ form.password2 }}
-            </div>
-
-            <button type="submit" class="btn btn-primary btn-block">Register</button>
-        </form>
-
-        <div class="auth-footer">
-            <p>Already have an account? <a href="{% url 'login' %}">Login here</a></p>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/auth.js' %}"></script>
 {% endblock %}
