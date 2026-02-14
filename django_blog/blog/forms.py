@@ -2,6 +2,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
+from .models import Post, Profile
 import re
 
 class UserRegisterForm(UserCreationForm):
@@ -55,7 +56,6 @@ class UserUpdateForm(forms.ModelForm):
     def clean_email(self):
         email = self.cleaned_data.get('email')
         user_id = self.instance.id if self.instance else None
-
         if User.objects.filter(email=email).exclude(id=user_id).exists():
             raise ValidationError("This email is already in use by another account.")
         return email
@@ -68,5 +68,39 @@ class UserProfileForm(forms.ModelForm):
     }), required=False)
 
     class Meta:
-        model = User
-        fields = ['first_name', 'last_name', 'email']
+        model = Profile
+        fields = ['bio', 'location', 'birth_date', 'website', 'profile_picture']
+
+class PostForm(forms.ModelForm):
+    class Meta:
+        model = Post
+        fields = ['title', 'content']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter post title',
+                'required': True
+            }),
+            'content': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Write your blog post content here...',
+                'rows': 10,
+                'required': True
+            }),
+        }
+        labels = {
+            'title': 'Post Title',
+            'content': 'Post Content'
+        }
+
+    def clean_title(self):
+        title = self.cleaned_data.get('title')
+        if len(title) < 5:
+            raise ValidationError("Title must be at least 5 characters long.")
+        return title
+
+    def clean_content(self):
+        content = self.cleaned_data.get('content')
+        if len(content) < 20:
+            raise ValidationError("Content must be at least 20 characters long.")
+        return content

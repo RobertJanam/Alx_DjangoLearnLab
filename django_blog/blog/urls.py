@@ -3,7 +3,8 @@ from django.contrib.auth import views as auth_views
 from . import views
 
 urlpatterns = [
-    path('', views.home, name='home'),
+    # Home
+    path('', views.PostListView.as_view(), name='home'),
 
     # Authentication URLs
     path('register/', views.register, name='register'),
@@ -13,7 +14,14 @@ urlpatterns = [
     path('profile/edit/', views.update_profile, name='edit_profile'),
     path('profile/<str:username>/', views.profile_detail, name='profile-detail'),
 
-    # Password reset URLs (using Django's built-in views)
+    # Blog Post URLs
+    path('posts/', views.PostListView.as_view(), name='post-list'),
+    path('post/new/', views.PostCreateView.as_view(), name='post-create'),
+    path('post/<int:pk>/', views.PostDetailView.as_view(), name='post-detail'),
+    path('post/<int:pk>/edit/', views.PostUpdateView.as_view(), name='post-update'),
+    path('post/<int:pk>/delete/', views.PostDeleteView.as_view(), name='post-delete'),
+
+    # Password reset URLs
     path('password-reset/',
          auth_views.PasswordResetView.as_view(
              template_name='registration/password_reset.html'
