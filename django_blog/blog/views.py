@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 from .models import Post, Profile, Comment
-from taggit.forms import TagWidget  # This is what the checker is looking for
+from taggit.forms import TagWidget
 import re
 
 class UserRegisterForm(UserCreationForm):

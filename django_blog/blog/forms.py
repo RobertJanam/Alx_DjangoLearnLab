@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm
 from django.core.exceptions import ValidationError
 from .models import Post, Profile, Comment
-from taggit.forms import TagWidget  # Add this
+from taggit.forms import TagWidget
 import re
 
 class UserRegisterForm(UserCreationForm):
@@ -77,9 +77,8 @@ class PostForm(forms.ModelForm):
         required=False,
         widget=TagWidget(attrs={
             'class': 'form-control',
-            'placeholder': 'Enter tags separated by commas (e.g., python, django, tutorial)'
-        }),
-        help_text='Separate tags with commas'
+            'placeholder': 'Enter tags separated by commas'
+        })
     )
 
     class Meta:
@@ -88,20 +87,13 @@ class PostForm(forms.ModelForm):
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter post title',
-                'required': True
+                'placeholder': 'Enter post title'
             }),
             'content': forms.Textarea(attrs={
                 'class': 'form-control',
                 'placeholder': 'Write your blog post content here...',
-                'rows': 10,
-                'required': True
+                'rows': 10
             }),
-        }
-        labels = {
-            'title': 'Post Title',
-            'content': 'Post Content',
-            'tags': 'Tags'
         }
 
     def clean_title(self):
@@ -119,13 +111,10 @@ class PostForm(forms.ModelForm):
     def clean_tags(self):
         tags = self.cleaned_data.get('tags')
         if tags:
-            # Split tags and validate each one
             tag_list = [tag.strip() for tag in tags.split(',') if tag.strip()]
             for tag in tag_list:
                 if len(tag) > 50:
-                    raise ValidationError(f"Tag '{tag}' is too long (maximum 50 characters).")
-                if not re.match(r'^[a-zA-Z0-9\s\-_]+$', tag):
-                    raise ValidationError(f"Tag '{tag}' can only contain letters, numbers, spaces, hyphens, and underscores.")
+                    raise ValidationError(f"Tag '{tag}' is too long.")
         return tags
 
 class CommentForm(forms.ModelForm):
@@ -136,12 +125,8 @@ class CommentForm(forms.ModelForm):
             'content': forms.Textarea(attrs={
                 'class': 'form-control comment-input',
                 'placeholder': 'Write your comment here...',
-                'rows': 3,
-                'required': True
+                'rows': 3
             }),
-        }
-        labels = {
-            'content': ''
         }
 
     def clean_content(self):
@@ -157,7 +142,7 @@ class SearchForm(forms.Form):
         required=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control search-input',
-            'placeholder': 'Search posts by title, content, or tags...'
+            'placeholder': 'Search posts...'
         })
     )
 
