@@ -5,13 +5,16 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.db import transaction
-from .models import Post, Profile
-from .forms import UserRegisterForm, UserUpdateForm, UserProfileForm, PostForm
+from .models import Post, Profile, Comment
+from .forms import UserRegisterForm, UserUpdateForm, UserProfileForm, PostForm, CommentForm
+
+# Create your views here.
 
 # Authentication Views
 def home(request):
+    """Home page view displaying all blog posts."""
     posts = Post.objects.all()
     context = {
         'posts': posts,
@@ -20,6 +23,7 @@ def home(request):
     return render(request, 'blog/home.html', context)
 
 def register(request):
+    """User registration view."""
     if request.user.is_authenticated:
         return redirect('home')
 
@@ -36,6 +40,7 @@ def register(request):
     return render(request, 'registration/register.html', {'form': form, 'title': 'Register'})
 
 def login_view(request):
+    """User login view."""
     if request.user.is_authenticated:
         return redirect('home')
 
@@ -55,12 +60,14 @@ def login_view(request):
     return render(request, 'registration/login.html', {'title': 'Login'})
 
 def logout_view(request):
+    """User logout view."""
     logout(request)
     messages.success(request, 'You have been successfully logged out.')
     return redirect('home')
 
 @login_required
 def profile(request):
+    """User profile view and edit."""
     if request.method == 'POST':
         user_form = UserUpdateForm(request.POST, instance=request.user)
         profile_form = UserProfileForm(request.POST, request.FILES, instance=request.user.profile)
@@ -83,6 +90,7 @@ def profile(request):
 
 @login_required
 def profile_detail(request, username):
+    """View another user's profile."""
     user = get_object_or_404(User, username=username)
     posts = Post.objects.filter(author=user)
 
@@ -96,6 +104,7 @@ def profile_detail(request, username):
 @login_required
 @transaction.atomic
 def update_profile(request):
+    """Update user profile."""
     if request.method == 'POST':
         user_form = UserUpdateForm(request.POST, instance=request.user)
         profile_form = UserProfileForm(request.POST, request.FILES, instance=request.user.profile)
@@ -118,8 +127,10 @@ def update_profile(request):
     }
     return render(request, 'registration/edit_profile.html', context)
 
+
 # Blog Post CRUD Views
 class PostListView(ListView):
+    """View to list all blog posts."""
     model = Post
     template_name = 'blog/post_list.html'
     context_object_name = 'posts'
@@ -131,7 +142,9 @@ class PostListView(ListView):
         context['title'] = 'All Posts'
         return context
 
+
 class PostDetailView(DetailView):
+    """View to display a single blog post."""
     model = Post
     template_name = 'blog/post_detail.html'
     context_object_name = 'post'
@@ -139,9 +152,13 @@ class PostDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['title'] = self.object.title
+        context['comment_form'] = CommentForm()
+        context['comments'] = self.object.comments.all()
         return context
 
+
 class PostCreateView(LoginRequiredMixin, CreateView):
+    """View to create a new blog post."""
     model = Post
     form_class = PostForm
     template_name = 'blog/post_form.html'
@@ -158,7 +175,9 @@ class PostCreateView(LoginRequiredMixin, CreateView):
         messages.success(self.request, 'Your post has been created successfully!')
         return super().form_valid(form)
 
+
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """View to update an existing blog post."""
     model = Post
     form_class = PostForm
     template_name = 'blog/post_form.html'
@@ -178,7 +197,9 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         post = self.get_object()
         return self.request.user == post.author
 
+
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """View to delete a blog post."""
     model = Post
     template_name = 'blog/post_confirm_delete.html'
     success_url = reverse_lazy('post-list')
@@ -196,3 +217,70 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def test_func(self):
         post = self.get_object()
         return self.request.user == post.author
+
+
+# Comment Views
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    """View to create a new comment."""
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Add Comment'
+        return context
+
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        form.instance.post_id = self.kwargs['post_id']
+        messages.success(self.request, 'Your comment has been added!')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('post-detail', kwargs={'pk': self.kwargs['post_id']})
+
+
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """View to update an existing comment."""
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Edit Comment'
+        return context
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Your comment has been updated!')
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse('post-detail', kwargs={'pk': self.object.post.pk})
+
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author
+
+
+class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """View to delete a comment."""
+    model = Comment
+    template_name = 'blog/comment_confirm_delete.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Delete Comment'
+        return context
+
+    def get_success_url(self):
+        return reverse('post-detail', kwargs={'pk': self.object.post.pk})
+
+    def delete(self, request, *args, **kwargs):
+        messages.success(request, 'Your comment has been deleted!')
+        return super().delete(request, *args, **kwargs)
+
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author

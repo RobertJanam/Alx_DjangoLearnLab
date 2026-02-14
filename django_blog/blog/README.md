@@ -101,3 +101,75 @@ The blog post management system provides full CRUD (Create, Read, Update, Delete
 - Form validation for data integrity
 - Safe deletion with confirmation
 - Proper error handling and user feedback
+
+# Comment System Documentation
+
+## Overview
+The comment system allows users to engage with blog posts by leaving, editing, and deleting comments. Comments are displayed chronologically under each blog post.
+
+## Features
+
+### 1. Viewing Comments
+- Comments are displayed below each blog post
+- Each comment shows:
+  - Author's username and avatar
+  - Comment content
+  - Time posted (with "edited" indicator if modified)
+  - Edit/Delete buttons for comment authors
+- Comments are ordered from oldest to newest
+
+### 2. Adding Comments
+- Only authenticated users can add comments
+- Comment form is available on each post's detail page
+- Form validation:
+  - Minimum length: 2 characters
+  - Maximum length: 1000 characters
+- Success message after posting
+
+### 3. Editing Comments
+- Only the comment author can edit their comment
+- Edit form is pre-filled with existing content
+- Same validation rules as creating
+- "edited" indicator appears after modification
+- Success message after update
+
+### 4. Deleting Comments
+- Only the comment author can delete their comment
+- Confirmation page before deletion
+- Shows comment preview
+- Warning about permanent deletion
+- Success message after deletion
+- Returns to post detail page
+
+## URL Patterns
+
+| URL | View Name | Method | Description |
+|-----|-----------|--------|-------------|
+| `/post/<int:post_id>/comment/new/` | `comment-create` | GET/POST | Create new comment |
+| `/comment/<int:pk>/update/` | `comment-update` | GET/POST | Edit comment |
+| `/comment/<int:pk>/delete/` | `comment-delete` | GET/POST | Delete comment |
+
+## Permissions
+
+| Action | Anonymous User | Authenticated User | Comment Author |
+|--------|---------------|-------------------|----------------|
+| View Comments | ✓ | ✓ | ✓ |
+| Add Comment | ✗ | ✓ | - |
+| Edit Comment | ✗ | ✗ | ✓ |
+| Delete Comment | ✗ | ✗ | ✓ |
+
+## Testing Instructions
+
+### Test Adding a Comment
+1. Login to the application
+2. Navigate to any blog post
+3. Scroll to comments section
+4. Enter comment in the form
+5. Submit and verify:
+   - Comment appears in list
+   - Success message displayed
+   - Comment shows correct timestamp
+
+### Test Editing a Comment
+1. Navigate to your comment
+2. Click the edit (pencil
