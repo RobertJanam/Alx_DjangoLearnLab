@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Django Blog{% endblock %}
+
+{% block content %}
+    <h1>Welcome to Django Blog</h1>
+
+    {% if posts %}
+        <div class="posts-grid">
+            {% for post in posts %}
+                <article class="post-card">
+                    <h2><a href="{% url 'post-detail' post.pk %}">{{ post.title }}</a></h2>
+                    <p class="post-meta">
+                        Published on {{ post.published_date|date:"F j, Y" }} by {{ post.author.username }}
+                    </p>
+                    <div class="post-excerpt">
+                        {{ post.content|truncatewords:50 }}
+                    </div>
+                    <a href="{% url 'post-detail' post.pk %}" class="read-more">Read More</a>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No blog posts yet. Check back soon!</p>
+    {% endif %}
+{% endblock %}
