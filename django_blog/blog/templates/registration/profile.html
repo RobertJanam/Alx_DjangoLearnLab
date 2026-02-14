@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Django Blog{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-cover"></div>
+        <div class="profile-info">
+            <div class="profile-avatar">
+                {% if user.profile.profile_picture %}
+                    <img src="{{ user.profile.profile_picture.url }}" alt="{{ user.username }}">
+                {% else %}
+                    <div class="avatar-placeholder">
+                        {{ user.username|first|upper }}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="profile-details">
+                <h1>{{ user.username }}</h1>
+                <p class="profile-email">{{ user.email }}</p>
+                {% if user.profile.bio %}
+                    <p class="profile-bio">{{ user.profile.bio }}</p>
+                {% endif %}
+                <div class="profile-meta">
+                    <span class="meta-item">
+                        <strong>{{ user.blog_posts.count }}</strong> Posts
+                    </span>
+                    <span class="meta-item">
+                        <strong>Member since:</strong> {{ user.date_joined|date:"F Y" }}
+                    </span>
+                </div>
+                <a href="{% url 'edit_profile' %}" class="btn btn-primary">Edit Profile</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="profile-content">
+        <div class="profile-tabs">
+            <button class="tab-btn active" onclick="showTab('posts')">My Posts</button>
+            <button class="tab-btn" onclick="showTab('about')">About</button>
+            <button class="tab-btn" onclick="showTab('settings')">Settings</button>
+        </div>
+
+        <div id="posts-tab" class="tab-content active">
+            <h2>My Blog Posts</h2>
+            {% if user.blog_posts.all %}
+                <div class="posts-grid">
+                    {% for post in user.blog_posts.all %}
+                        <article class="post-card">
+                            <h3><a href="{% url 'post-detail' post.pk %}">{{ post.title }}</a></h3>
+                            <p class="post-meta">{{ post.published_date|date:"F j, Y" }}</p>
+                            <p class="post-excerpt">{{ post.content|truncatewords:30 }}</p>
+                            <div class="post-actions">
+                                <a href="{% url 'post-update' post.pk %}" class="btn-small">Edit</a>
+                                <a href="{% url 'post-delete' post.pk %}" class="btn-small btn-danger">Delete</a>
+                            </div>
+                        </article>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>You haven't written any posts yet.</p>
+                <a href="{% url 'post-create' %}" class="btn btn-primary">Write Your First Post</a>
+            {% endif %}
+        </div>
+
+        <div id="about-tab" class="tab-content">
+            <h2>About Me</h2>
+            <div class="about-info">
+                <p><strong>Full Name:</strong> {{ user.get_full_name|default:"Not provided" }}</p>
+                <p><strong>Location:</strong> {{ user.profile.location|default:"Not provided" }}</p>
+                <p><strong>Website:</strong>
+                    {% if user.profile.website %}
+                        <a href="{{ user.profile.website }}" target="_blank">{{ user.profile.website }}</a>
+                    {% else %}
+                        Not provided
+                    {% endif %}
+                </p>
+                <p><strong>Birth Date:</strong> {{ user.profile.birth_date|default:"Not provided" }}</p>
+                <p><strong>Bio:</strong> {{ user.profile.bio|default:"No bio provided" }}</p>
+            </div>
+        </div>
+
+        <div id="settings-tab" class="tab-content">
+            <h2>Account Settings</h2>
+            <form method="POST" enctype="multipart/form-data" class="settings-form">
+                {% csrf_token %}
+
+                <h3>Basic Information</h3>
+                {{ user_form.as_p }}
+
+                <h3>Profile Information</h3>
+                {{ profile_form.as_p }}
+
+                <button type="submit" class="btn btn-primary">Update Profile</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function showTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+
+    // Remove active class from all buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Show selected tab
+    document.getElementById(tabName + '-tab').classList.add('active');
+
+    // Add active class to clicked button
+    event.target.classList.add('active');
+}
+</script>
+{% endblock %}
