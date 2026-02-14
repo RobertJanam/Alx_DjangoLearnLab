@@ -104,3 +104,23 @@ class PostForm(forms.ModelForm):
         if len(content) < 20:
             raise ValidationError("Content must be at least 20 characters long.")
         return content
+
+
+# CommentForm for handling comments
+from .models import Comment
+
+class CommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'class': 'form-control',
+                'placeholder': 'Write your comment here...',
+                'rows': 4,
+                'required': True
+            }),
+        }
+        labels = {
+            'content': 'Comment'
+        }
