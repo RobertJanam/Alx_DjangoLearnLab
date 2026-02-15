@@ -387,3 +387,24 @@ class SearchResultsView(ListView):
         context['query'] = self.request.GET.get('q', '')
         context['result_count'] = self.get_queryset().count()
         return context
+
+class PostByTagListView(ListView):
+    """
+    View to display posts filtered by a specific tag.
+    URL pattern: tags/<slug:tag_slug>/
+    """
+    model = Post
+    template_name = 'blog/post_list.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+
+    def get_queryset(self):
+        tag_slug = self.kwargs.get('tag_slug')
+        return Post.objects.filter(tags__name__icontains=tag_slug).distinct().order_by('-published_date')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = f"Posts tagged with '{self.kwargs.get('tag_slug')}'"
+        context['search_form'] = SearchForm()
+        context['current_tag'] = self.kwargs.get('tag_slug')
+        return context
